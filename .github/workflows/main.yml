@@ -61,6 +61,7 @@ jobs:
               exit 1
           fi
           opkg install depends/*.ipk
+          opkg install haproxy shadowsocks-libev-config shadowsocks-libev-ss-local shadowsocks-libev-ss-redir shadowsocks-libev-ss-server
           opkg install main/*.ipk
           EOF
           chmod +x passwall_x86_64/install.sh
