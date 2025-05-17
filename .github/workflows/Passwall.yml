@@ -55,14 +55,32 @@ jobs:
         run: |
           cat <<EOF > passwall_x86_64/install.sh
           #!/bin/sh
+          pw_ver=`ls |grep luci-app|awk -F'[_]' '{print $2}'`
+          pwzh_ver=`ls |grep luci-i18n|awk -F'[_-]' '{print $6}'`
           opkg update
           if [ $? -ne 0 ]; then
-              echo "update failed。"
-              exit 1
+             echo "更新软件源列表错误，请检查路由器自身网络连接以及是否有失效的软件源。"
+             exit 1
           fi
           opkg install depends/*.ipk
-          opkg install haproxy shadowsocks-libev-config shadowsocks-libev-ss-local shadowsocks-libev-ss-redir shadowsocks-libev-ss-server
-          opkg install main/*.ipk
+          opkg install haproxy
+          if opkg list-installed | grep -q 'luci-app-passwall .*'$pw_ver''; then
+             echo "发现相同版本，正在执行强制重新安装passwall "$pw_ver""
+             opkg install luci-app-passwall_"$pw_ver"_all.ipk --force-reinstall
+             opkg install luci-i18n-passwall-zh-cn_"$pwzh_ver"_all.ipk
+          else
+            echo "正在安装passwall "$pw_ver""
+            opkg install luci-app-passwall_"$pw_ver"_all.ipk luci-i18n-passwall-zh-cn_"$pwzh_ver"_all.ipk
+          fi
+          if opkg list-installed | grep -q firewall4 && uci get passwall.@global_forwarding[0].use_nft |grep -q 0; then
+            echo "检测到firewall4，修改passwall防火墙工具"
+            uci set passwall.@global_forwarding[0].use_nft='1'
+            uci commit passwall
+            /etc/init.d/passwall reload
+          fi
+          sleep 5s
+          echo "" >/var/log/passwall.log
+          /etc/init.d/passwall reload
           EOF
           chmod +x passwall_x86_64/install.sh
           cp passwall_x86_64/install.sh passwall_aarch64/install.sh
