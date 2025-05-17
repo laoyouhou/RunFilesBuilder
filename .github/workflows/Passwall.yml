@@ -42,7 +42,7 @@ jobs:
           mkdir -p passwall_x86_64/depends passwall_x86_64/main
           unzip downloads/passwall_packages_ipk_x86_64.zip -d passwall_x86_64/depends
           rm downloads/passwall_packages_ipk_x86_64.zip
-          cp downloads/luci-19.07*.ipk passwall_x86_64/main/
+          cp downloads/luci-24.10*.ipk passwall_x86_64/main/
 
       - name: Organize files for aarch64_cortex-a53
         run: |
